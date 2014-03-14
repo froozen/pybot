@@ -26,13 +26,13 @@ def __load_config():
             config[parts[0]] = parts[1]
             
 def __connect():
-    #TODO catch Errno -5 : socket.gaierror
     global connected
     global s
     global reconnect_wait
 
     connected = False
     print "Connecting to %s" % config["host"]
+    reconnect_wait = 15
 
     while not connected:
         s.close()
