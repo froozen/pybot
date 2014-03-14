@@ -1,5 +1,5 @@
-import connection
-import time
+import connection, plugins
+import time, pkgutil
 
 commands = {}
 triggers = {}
@@ -61,9 +61,27 @@ def __parse_input(input):
 
 def __load_plugins():
     print "Loading plugins..."
-    f = open("plugins.py")
-    exec(f.read())
-    f.close()
+
+    package = plugins
+    prefix = package.__name__ + "."
+    for importer, modname, ispkg in pkgutil.iter_modules(package.__path__, prefix):
+        module = __import__(modname, fromlist = "dummy")
+        dirs = dir(module)
+        
+        for method in dirs:
+            if method.startswith("cmd_"):
+                command_name = method[4:len(method)]
+                exec("commands[\""+command_name+"\"] = "+module.__name__+"."+method)
+
+            elif method.startswith("on_"):
+                trigger = method[3:len(method)]
+                exec("add_trigger(\""+trigger.upper()+"\", "+module.__name__+"."+method+")")
+
+            elif method == "init":
+                exec(module.__name__+".init()")
+
+    print commands
+    print triggers
 
 def init():
     global last_time
