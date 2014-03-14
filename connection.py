@@ -21,7 +21,7 @@ def __load_config():
         parts = line.split(":")
 
         if parts[0] == "channels":
-            config["channels"] = parts[1].split(",")
+            config["channels"] = parts[1].split(" ")
         else:
             config[parts[0]] = parts[1]
             

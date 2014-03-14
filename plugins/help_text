@@ -1,0 +1,9 @@
+help List all commands or get the help text of a specific command.
+welcomemsg Change the way the bot greets you.
+cm Check your inbox.
+msg Send a message to a user that is afk or offline. Usage: msg <target> some message
+roll Roll a dice.
+eroll Roll a dice with an unlimited amount of faces. (requested by etromora)
+afk Mark yourself as afk. You can add a message explaining why you are afk.
+status Get the status of a user.
+

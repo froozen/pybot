@@ -80,9 +80,6 @@ def __load_plugins():
             elif method == "init":
                 exec(module.__name__+".init()")
 
-    print commands
-    print triggers
-
 def init():
     global last_time
     last_time = time.time()
