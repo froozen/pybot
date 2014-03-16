@@ -35,14 +35,36 @@ def cmd_msg(parsed_input):
 
 def cmd_cm(parsed_input):
     if parsed_input["name"] in messages:
-        for message in messages[parsed_input["name"]]:
-            connection.send_privmsg(parsed_input["name"], "%d.%s %s" % (messages[parsed_input["name"]].index(message)," New:" * (not message["read"]), __message_to_str(message)))
-            message["read"] = True
+        if len(messages[parsed_input["name"]]) > 0:
+            for message in messages[parsed_input["name"]]:
+                connection.send_privmsg(parsed_input["name"], "%d.%s %s" % (messages[parsed_input["name"]].index(message)," New:" * (not message["read"]), __message_to_str(message)))
+                message["read"] = True
 
-        save_messages()
+            save_messages()
 
     else:
         connection.send_privmsg(parsed_input["name"], "There are no messages for you.")
+
+def cmd_rm(parsed_input):
+    split  = parsed_input["content"].split(" ")
+
+    if len(split) > 1:
+        for arg in split[1:len(split)]:
+            if arg != "all":
+                try:
+                    msg_id = int(arg)
+                    
+                    try:
+                        del(messages[parsed_input["name"]][msg_id])
+
+                    except IndexError:
+                        connection.send_privmsg(parsed_input["channel"], "Error: %s is not  a valid index." % arg)
+
+                except ValueError:
+                    connection.send_privmsg(parsed_input["channel"], "Error: %s is not  a valid number." % arg)
+            
+            else:
+                messages[parsed_input["name"]] = []
 
 def __message_to_str(message):
     return "'%s' - from %s" % (message["content"], message["sender"])

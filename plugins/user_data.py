@@ -36,12 +36,13 @@ def on_quit(parsed_input):
     del(users[parsed_input["name"]])
 
 def on_privmsg(parsed_input):
-    if users[parsed_input["name"]]["status"] == "afk":
-        users[parsed_input["name"]]["status"] = "online"
-        if "message" in users[parsed_input["name"]]:
-            del(users[parsed_input["name"]]["message"])
+    if parsed_input["name"] in users:
+        if users[parsed_input["name"]]["status"] == "afk":
+            users[parsed_input["name"]]["status"] = "online"
+            if "message" in users[parsed_input["name"]]:
+                del(users[parsed_input["name"]]["message"])
 
-        connection.send_privmsg(parsed_input["channel"], "%s is back." % parsed_input["name"])
+            connection.send_privmsg(parsed_input["channel"], "%s is back." % parsed_input["name"])
 
 def on_nick(parsed_input):
     if parsed_input["name"] in users:

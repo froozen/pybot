@@ -48,6 +48,10 @@ def __parse_input(input):
     if len(split) > 2:
         parsed_input["channel"] = split[2]
 
+        if "name" in parsed_input:
+            if parsed_input["channel"] == connection.config["name"]:
+                parsed_input["channel"] = parsed_input["name"]
+
     if len(split) > 3:
         split[3] = split[3][1:len(split[3])]
 

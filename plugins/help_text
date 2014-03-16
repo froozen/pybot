@@ -6,4 +6,5 @@ roll Roll a dice.
 eroll Roll a dice with an unlimited amount of faces. (requested by etromora)
 afk Mark yourself as afk. You can add a message explaining why you are afk.
 status Get the status of a user.
+rm Remove message at index; use rm all to remove all messages
 
