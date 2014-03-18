@@ -9,6 +9,9 @@ def on_353(parsed_input):
         split.pop(0)
         split[1] = split[1][1:len(split[1])]
         for user in split[1:len(split)]:
+            if user.startswith("@") or user.startswith("+"):
+                    user = user[1:len(user)]
+
             if user in users:
                 users[user]["channels"].append(split[0])
 
