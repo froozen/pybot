@@ -3,12 +3,12 @@ import connection
 users = {}
 
 def on_353(parsed_input):
-    print parsed_input["content"]
     split = parsed_input["content"].split(" ")
 
     if len(split) > 2:
-        split[0] = split[0][1:len(split[0])]
-        for user in split[2:len(split)]:
+        split.pop(0)
+        split[1] = split[1][1:len(split[1])]
+        for user in split[1:len(split)]:
             if user in users:
                 users[user]["channels"].append(split[0])
 
