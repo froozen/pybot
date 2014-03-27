@@ -64,8 +64,9 @@ def __connect():
                 send_message(line)
 
             elif " 433 " in line:
-                print "Error: Name already taken."
-                connected = False
+                print "433: Name already taken. Trying to reconnect in 2 minutes."
+                time.sleep(120)
+                __connect()
                 break
 
             elif ":%s MODE %s :" % (config["name"], config["name"])  in line:
