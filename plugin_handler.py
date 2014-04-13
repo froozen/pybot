@@ -42,7 +42,7 @@ def __parse_input(input):
     parsed_input["origin"] = split[0]
 
     if "!" in split[0]:
-        parsed_input["name"] = split[0][1:split[0].find("!~")]
+        parsed_input["name"] = split[0][1:split[0].find("!")]
 
     parsed_input["type"] = split[1]
     if len(split) > 2:
