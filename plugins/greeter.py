@@ -1,11 +1,30 @@
 import connection
+import user_data
 
 welcome_msgs = {}
+
+def afk_token(parsed_input):
+    afks = ""
+    for name, user in user_data.users.iteritems():
+        if parsed_input["channel"] in user["channels"] and user["status"] == "afk":
+            afks += name + " "
+
+    return afks
+
+special_tokens = {
+    "%afk%" : afk_token,
+}
+
+def render_welcome_msg(parsed_input):
+    msg = welcome_msgs[parsed_input["name"]]
+    for old, new_func in special_tokens.iteritems():
+        msg = msg.replace(old, new_func(parsed_input))
+    return msg
 
 def on_join(parsed_input):
     if parsed_input["name"] != connection.config["name"]:
         if parsed_input["name"] in welcome_msgs:
-            connection.send_privmsg(parsed_input["channel"], welcome_msgs[parsed_input["name"]])
+            connection.send_privmsg(parsed_input["channel"], render_welcome_msg(parsed_input))
 
         else:
             connection.send_privmsg(parsed_input["channel"], "Welcome on %s, %s." % (parsed_input["channel"], parsed_input["name"])) 
