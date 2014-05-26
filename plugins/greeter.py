@@ -1,7 +1,10 @@
 import connection
 import user_data
+import os
 
 welcome_msgs = {}
+
+obfuscated_escape = os.urandom(16).encode('hex')
 
 def afk_token(parsed_input):
     afks = ""
@@ -11,13 +14,15 @@ def afk_token(parsed_input):
 
     return afks
 
-special_tokens = {
-    "%afk%" : afk_token,
-}
+special_tokens = [
+    ("%%", (lambda _: obfuscated_escape)),
+    ("%afk%", afk_token),
+    (obfuscated_escape, (lambda _: "%")),
+]
 
 def render_welcome_msg(parsed_input):
     msg = welcome_msgs[parsed_input["name"]]
-    for old, new_func in special_tokens.iteritems():
+    for old, new_func in special_tokens:
         msg = msg.replace(old, new_func(parsed_input))
     return msg
 
