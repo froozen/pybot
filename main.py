@@ -2,7 +2,9 @@
 
 import connection
 import plugin_handler
+import logging
 
+logging.init()
 connection.init()
 plugin_handler.init()
 

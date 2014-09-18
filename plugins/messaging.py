@@ -1,4 +1,4 @@
-import connection
+import connection, logging
 from plugins import user_data
 
 messages = {}
@@ -82,6 +82,7 @@ def on_join(parsed_input):
 
 def init():
     print "Loading messages from 'plugins/messages'"
+    logging.append_to_log("Loading messages from 'plugins/messages'")
     f = open("plugins/messages")
     
     for line in f.readlines():
@@ -104,6 +105,7 @@ def init():
 
         else:
             print "Error with saved message:", line
+            logging.append_to_log("Error with saved message: " + line)
 
     f.close()
 
