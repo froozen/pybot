@@ -1,4 +1,4 @@
-import connection, plugins
+import connection, plugins, logging
 import pkgutil
 
 commands = []
@@ -37,6 +37,7 @@ def __load_commands():
 def __load_help_text():
     f = open("plugins/help_text")
     print "Loading help text from 'plugins/help_text'"
+    logging.append_to_log("Loading help text from 'plugins/help_text'")
 
     for line in f.readlines():
         split = line.split(" ")

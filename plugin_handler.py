@@ -1,4 +1,4 @@
-import connection, plugins
+import connection, plugins, logging
 import time, pkgutil
 
 commands = {}
@@ -15,6 +15,7 @@ def add_trigger(trigger, method):
 
 def handle_input(input):
     print input
+    logging.append_to_log(input)
     parsed_input = __parse_input(input)
 
     if parsed_input["type"] in triggers:
@@ -34,6 +35,7 @@ def handle_input(input):
             for command in commands:
                 if parsed_input["content"].startswith(command):
                     print "Running command: " + command
+                    logging.append_to_log("Running command: " + command)
                     commands[command](parsed_input)
 
 def __parse_input(input):
@@ -65,6 +67,7 @@ def __parse_input(input):
 
 def __load_plugins():
     print "Loading plugins..."
+    logging.append_to_log("Loading plugins...")
 
     package = plugins
     prefix = package.__name__ + "."

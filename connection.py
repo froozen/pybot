@@ -1,3 +1,4 @@
+import logging
 import socket
 import time
 
@@ -8,12 +9,14 @@ reconnect_wait = 15
 
 def send_privmsg(channel, message):
     send_message("PRIVMSG %s :%s" % (channel, message))
+    logging.append_to_log("bot: " + message)
 
 def send_message(message):
     s.send(message+"\r\n")
 
 def __load_config():
     print "Loading config..."
+    logging.append_to_log("Loading config...")
     f = open("config")
 
     for line in f:
@@ -32,6 +35,7 @@ def __connect():
 
     connected = False
     print "Connecting to %s" % config["host"]
+    logging.append_to_log("Connecting to %s" % config["host"])
     reconnect_wait = 15
 
     while not connected:
@@ -43,6 +47,7 @@ def __connect():
 
         except socket.gaierror:
             print "Connecting failed, will retry in %d seconds..." % reconnect_wait
+            logging.append_to_log("Connecting failed, will retry in %d seconds..." % reconnect_wait)
             time.sleep(reconnect_wait)
             reconnect_wait = reconnect_wait * 2
             if reconnect_wait > 300:
@@ -65,16 +70,19 @@ def __connect():
 
             elif " 433 " in line:
                 print "433: Name already taken. Trying to reconnect in 2 minutes."
+                logging.append_to_log("433: Name already taken. Trying to reconnect in 2 minutes.")
                 time.sleep(120)
                 __connect()
                 break
 
             elif ":%s MODE %s :" % (config["name"], config["name"])  in line:
                 print "Connection established!"
+                logging.append_to_log("Connection established!")
                 connected = True
                 channels = config["channels"]
                 for channel in channels:
                     print "Joining %s..." % channel
+                    logging.append_to_log("Joining %s..." % channel)
                     send_message("JOIN " + channel)
 
                 break
@@ -89,6 +97,7 @@ def read_lines():
 
     except socket.timeout:
         print "Connection lost. Reconnecting:"
+        logging.append_to_log("Connection lost. Reconnecting...")
         __connect()
         return read_lines()
 

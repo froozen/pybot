@@ -1,4 +1,4 @@
-import connection
+import connection, logging
 import user_data
 import os
 
@@ -44,6 +44,7 @@ def cmd_welcomemsg(parsed_input):
 
 def init():
     print "Loading welcome messages from 'plugins/welcomemsgs'"
+    logging.append_to_log("Loading welcome messages from 'plugins/welcomemsgs'")
     f = open("plugins/welcomemsgs")
 
     for line in f.readline():
