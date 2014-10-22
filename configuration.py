@@ -1,4 +1,5 @@
 import threading
+import log
 import json
 
 _config_handle = None
@@ -7,6 +8,7 @@ _config_lock = threading.Lock ()
 class Configuration_handle ( object ):
     def __init__ ( self, data ):
         if not type ( data ) == dict:
+            log.write ( "Error in configuration: data is not a dict" )
             raise ValueError ( "Error: data is not a dict" )
 
         self._data = data
@@ -46,7 +48,8 @@ class Configuration_handle ( object ):
                     position = position [ key_level ]
 
             else:
-                raise ValueError ( "Error: Key_level \"%s\" in path is not a dict" ) % key_level
+                log.write ( "Error in configuration: Key_level \"%s\" in path is not a dict" % key_level )
+                raise ValueError ( "Error: Key_level \"%s\" in path is not a dict" % key_level )
 
         position [ key_levels [ -1 ] ] = value
 
@@ -65,9 +68,11 @@ def initialize ():
             _config_handle = Configuration_handle ( data )
 
     except IOError:
+        log.write ( "Error in configuration: Failed to load \"config.json\"" )
         raise IOError ( "Error: Failed to load \"config.json\"" )
 
     except ValueError:
+        log.write ( "Error in configuration: Invalid configuration" )
         raise ValueError ( "Error: Invalid configuration" )
 
 def get ( key ):
