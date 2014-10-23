@@ -100,11 +100,11 @@ def initialize ():
 
     except IOError:
         log.write ( "Error in configuration: Failed to load \"config.json\"" )
-        raise IOError ( "Error: Failed to load \"config.json\"" )
+        raise
 
     except ValueError:
         log.write ( "Error in configuration: Invalid configuration" )
-        raise ValueError ( "Error: Invalid configuration" )
+        raise
 
 def get ( key ):
     """Return a configuration value or None if not set
