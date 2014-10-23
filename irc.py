@@ -10,6 +10,7 @@ class Irc_server ( object ):
         Used keys:
             host: address of the server
             port: port of the server ( optional )
+            nick: nickname the bot will use
         """
 
         # Used in _read_line
@@ -22,6 +23,7 @@ class Irc_server ( object ):
         # Assume this as a default value
         self.port = 6667
         self.host = configuration_handle.get ( "host" )
+        self.nick = configuration_handle.get ( "nick" )
 
         # Use port from configuration if it exists
         if configuration_handle.get ( "port" ):
@@ -36,6 +38,22 @@ class Irc_server ( object ):
         except socket.error:
             log.write ( "Error in irc: Failed to connect to server: %s:%d" % ( self.host, self.port ) )
             raise
+
+        self._register ()
+
+    def _register ( self ):
+        """Register using NICK and USER, then wait for MODE signal"""
+
+        nick_event = Irc_event ( "NICK", self.nick )
+        self.send_event ( nick_event )
+        user_event = Irc_event ( "USER", self.nick, "localhost", "localhost", "irc bot" )
+        self.send_event ( user_event )
+
+        while True:
+            event = self.get_next_event ()
+
+            if event.type == "MODE" and event.args == [ self.nick, "+i" ]:
+                break
 
     def _read_line ( self ):
         """Read one irc-line from self._socket"""
@@ -64,6 +82,13 @@ class Irc_server ( object ):
         """Return the Irc_event corresponding to the next line."""
         line = self._read_line ()
         return Irc_event ( line )
+
+    def send_event ( self, event ):
+        if not type ( event ) == Irc_event:
+            log.write ( "Error in irc: event is not an Irc_event" )
+            raise ValueError ( "Error: event is not an Irc_event" )
+
+        self._socket.send ( "%s\r\n" % event.signal )
 
 class Irc_event ( object ):
     def __init__ ( self, line_o_type = None, *args ):
