@@ -83,3 +83,6 @@ def set ( key, value ):
 
     with open ( "config.json", "w" ) as f:
         f.write ( _config_handle._data_string )
+
+def get_handle ( key ):
+    return Configuration_handle ( _config_handle.get ( key ) )
