@@ -59,3 +59,72 @@ class Irc_server ( object ):
             # Add the rest of the lines
             if len ( lines ) > 0:
                 self._last_lines.extend ( lines )
+
+    def get_next_event ( self ):
+        """Return the Irc_event corresponding to the next line."""
+        line = self._read_line ()
+        return Irc_event ( line )
+
+class Irc_event ( object ):
+    def __init__ ( self, line_o_type = None, *args ):
+        """Create an Irc_event
+
+        Possible calls:
+            line:                     parses a line from the irc-protocoll
+            type, arg1, arg2, arg...: Create your own event
+        """
+
+        # Set default values
+        self.name = None
+        self.host = None
+        self.type = None
+        self.args = []
+
+        if len ( args ) == 0:
+            parts = line_o_type.split ( " " )
+
+            # Starts with origin
+            if parts [ 0 ].startswith ( ":" ):
+                # Try to extract the names via regex
+                match = re.match ( ":(.*?)!(.*)", parts [ 0 ] )
+                if match:
+                    self.name = match.group ( 1 )
+                    self.host = match.group ( 2 )
+
+                # Save the whole as name
+                else:
+                    self.name = parts [ 0 ] [ 1: ]
+
+                # Remove this part
+                parts.pop ( 0 )
+
+            self.type = parts.pop ( 0 )
+
+            # Iterate over arguments
+            for i in range ( len ( parts ) ):
+                # Last argument
+                if parts [ i ].startswith ( ":" ):
+                    # Remove the ":"
+                    parts [ i ] = parts [ i ] [ 1: ]
+                    self.args.append ( " ".join ( parts [ i: ] ) )
+                    break
+                else:
+                    self.args.append ( parts [ i ] )
+
+        else:
+            self.type = line_o_type
+            self.args = args
+
+    @property
+    def signal ( self ):
+        signal = self.type
+
+        for arg in self.args:
+            # Last argument
+            if " " in arg:
+                signal += " :%s" % arg
+                break
+
+            else:
+                signal += " " + arg
+        return signal
