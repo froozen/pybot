@@ -129,10 +129,7 @@ def set ( key, value ):
 
     # Simply call the method in _config_handle
     _config_handle.set ( key, value )
-
-    # Save changes into file
-    with open ( "config.json", "w" ) as f:
-        f.write ( _config_handle._data_string )
+    save ()
 
 def get_handle ( key ):
     """Return a Configuration_handle object representing a dict identified by a key.
@@ -144,3 +141,15 @@ def get_handle ( key ):
     """
 
     return Configuration_handle ( _config_handle.get ( key ) )
+
+def save ():
+    """Save the configuration data back into \"config.json\"
+
+    This method is thread safe
+    """
+
+    _config_lock.acquire ()
+    # Save changes into file
+    with open ( "config.json", "w" ) as f:
+        f.write ( _config_handle._data_string )
+    _config_lock.release ()
