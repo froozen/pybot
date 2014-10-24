@@ -1,11 +1,11 @@
 import log
 import socket
-import configuration
 import re
+from data_container import Data_container
 
 class Irc_server ( object ):
-    def __init__ ( self, configuration_handle ):
-        """Create an Irc_server from a Configuration_handle.
+    def __init__ ( self, data_container ):
+        """Create an Irc_server from a Data_container.
 
         Used keys:
             host: address of the server
@@ -16,18 +16,18 @@ class Irc_server ( object ):
         # Used in _read_line
         self._last_lines = []
 
-        if not type ( configuration_handle ) == configuration.Configuration_handle:
-            log.write ( "Error in irc: configuration_handle is not a Configuration_handle" )
-            raise ValueError ( "Error: configuration_handle is not a Configuration_handle" )
+        if not type ( data_container ) == Data_container:
+            log.write ( "Error in irc: data_container is not a Data_container" )
+            raise ValueError ( "Error: data_container is not a Data_container" )
 
         # Assume this as a default value
         self.port = 6667
-        self.host = configuration_handle.get ( "host" )
-        self.nick = configuration_handle.get ( "nick" )
+        self.host = data_container.get ( "host" )
+        self.nick = data_container.get ( "nick" )
 
         # Use port from configuration if it exists
-        if configuration_handle.get ( "port" ):
-            self.port = configuration_handle.get ( "port" )
+        if data_container.get ( "port" ):
+            self.port = data_container.get ( "port" )
 
         self._socket = socket.socket ()
 
