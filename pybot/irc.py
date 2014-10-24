@@ -12,6 +12,7 @@ class Irc_server ( object ):
             host: address of the server
             port: port of the server ( optional )
             nick: nickname the bot will use
+            channels: channels to join upon connect ( optional )
         """
 
         # Used in _read_line
@@ -27,10 +28,14 @@ class Irc_server ( object ):
         self.port = 6667
         self.host = data_container.get ( "host" )
         self.nick = data_container.get ( "nick" )
+        channels = []
 
         # Use port from configuration if it exists
         if data_container.get ( "port" ):
             self.port = data_container.get ( "port" )
+
+        if data_container.get ( "channels" ):
+            channels = data_container.get ( "channels" )
 
         self._socket = socket.socket ()
 
@@ -42,10 +47,10 @@ class Irc_server ( object ):
             log.write ( "Error in irc: Failed to connect to server: %s:%d" % ( self.host, self.port ) )
             raise
 
-        self._register ()
+        self._register ( channels )
 
-    def _register ( self ):
-        """Register using NICK and USER, then wait for MODE signal"""
+    def _register ( self, channels ):
+        """Register using NICK and USER, then wait for MODE signal and JOIN the channels"""
 
         nick_event = Irc_event ( "NICK", self.nick )
         self.send_event ( nick_event )
@@ -56,6 +61,10 @@ class Irc_server ( object ):
             event = self.get_next_event ()
 
             if event.type == "MODE" and event.args == [ self.nick, "+i" ]:
+                # Automaticly join channels
+                if len ( channels ) > 0:
+                    join_event = Irc_event ( "JOIN", ",".join ( channels ) )
+                    self.send_event ( join_event )
                 break
 
     def _read_line ( self ):
