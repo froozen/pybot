@@ -2,6 +2,7 @@ import log
 import socket
 import re
 from data_container import Data_container
+import users
 
 class Irc_server ( object ):
     def __init__ ( self, data_container ):
@@ -15,6 +16,8 @@ class Irc_server ( object ):
 
         # Used in _read_line
         self._last_lines = []
+
+        self.user_data = users.User_data ( self )
 
         if not type ( data_container ) == Data_container:
             log.write ( "Error in irc: data_container is not a Data_container" )
@@ -85,11 +88,12 @@ class Irc_server ( object ):
         event = Irc_event ( line )
 
         # Try to call event handling function
-        try:
-            exec "self.on_%s ( event )" % event.type.lower ()
+        for target in [ "self", "self.user_data" ]:
+            try:
+                exec "%s._on_%s ( event )" % ( target, event.type.lower () )
 
-        except AttributeError:
-            pass
+            except AttributeError:
+                pass
 
         return event
 
@@ -102,7 +106,7 @@ class Irc_server ( object ):
 
         self._socket.send ( "%s\r\n" % event.signal )
 
-    def on_ping ( self, event ):
+    def _on_ping ( self, event ):
         """Automaticly handle pings."""
 
         pong_event = Irc_event ( "PONG", event.args [ 0 ] )
