@@ -1,5 +1,6 @@
 import log
 import json
+import os
 from data_container import Data_container
 
 _config_container = None
@@ -10,7 +11,8 @@ def initialize ():
     global _config_container
 
     try:
-        with open ( "config.json" ) as f:
+        # This loads the right file regardless from where the bot was started
+        with open ( os.path.dirname ( __file__ ) + "/../config.json" ) as f:
             data = json.loads ( f.read () )
             _config_container = Data_container ( data )
 
@@ -65,5 +67,6 @@ def save ():
     """
 
     # Save changes into file
-    with open ( "config.json", "w" ) as f:
+    # This loads the right file regardless from where the bot was started
+    with open ( os.path.dirname ( __file__ ) + "/../config.json", "w" ) as f:
         f.write ( json.dumps ( _config_container.get_data (), indent = 4, separators = [ ",", ": " ] ) )

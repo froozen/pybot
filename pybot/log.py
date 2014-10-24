@@ -1,12 +1,14 @@
 import threading
 import time
+import os
 
 _log_file_lock = threading.Lock ()
 
 def initialize ():
     """Truncate the file by opening it in write mode."""
 
-    with open ( "pybot.log", "w" ) as f:
+    # This loads the right file regardless from where the bot was started
+    with open ( os.path.dirname ( __file__ ) + "/../pybot.log", "w" ) as f:
         pass
 
 def write ( text ):
