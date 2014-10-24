@@ -80,15 +80,33 @@ class Irc_server ( object ):
 
     def get_next_event ( self ):
         """Return the Irc_event corresponding to the next line."""
+
         line = self._read_line ()
-        return Irc_event ( line )
+        event = Irc_event ( line )
+
+        # Try to call event handling function
+        try:
+            exec "self.on_%s ( event )" % event.type.lower ()
+
+        except AttributeError:
+            pass
+
+        return event
 
     def send_event ( self, event ):
+        """Send event over socket."""
+
         if not type ( event ) == Irc_event:
             log.write ( "Error in irc: event is not an Irc_event" )
             raise ValueError ( "Error: event is not an Irc_event" )
 
         self._socket.send ( "%s\r\n" % event.signal )
+
+    def on_ping ( self, event ):
+        """Automaticly handle pings."""
+
+        pong_event = Irc_event ( "PONG", event.args [ 0 ] )
+        self.send_event ( pong_event )
 
 class Irc_event ( object ):
     def __init__ ( self, line_o_type = None, *args ):
