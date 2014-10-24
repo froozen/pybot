@@ -1,6 +1,7 @@
 import threading
 import log
 import json
+from utils import locked
 
 _config_handle = None
 _config_lock = threading.Lock ()
@@ -16,6 +17,7 @@ class Configuration_handle ( object ):
 
         self._data = data
 
+    @locked ( _config_lock )
     def get ( self, key ):
         """Return a configuration value or None if not set
 
@@ -26,8 +28,6 @@ class Configuration_handle ( object ):
         """
 
         # Lock to make it thread safe
-        _config_lock.acquire ()
-
         key_levels = key.split ( "." )
         position = self._data
 
@@ -43,10 +43,9 @@ class Configuration_handle ( object ):
             # Return None if either one doesn't apply
             return None
 
-        _config_lock.release ()
-
         return position
 
+    @locked ( _config_lock )
     def set ( self, key, value ):
         """Set a configuration value.
 
@@ -55,8 +54,6 @@ class Configuration_handle ( object ):
 
         This method is thread safe.
         """
-
-        _config_lock.acquire ()
 
         key_levels = key.split ( "." )
         position = self._data
@@ -80,8 +77,6 @@ class Configuration_handle ( object ):
 
         # Actually set the value
         position [ key_levels [ -1 ] ] = value
-
-        _config_lock.release ()
 
     # This is needed for saving the configuration into the config file
     @property
@@ -142,14 +137,13 @@ def get_handle ( key ):
 
     return Configuration_handle ( _config_handle.get ( key ) )
 
+@locked ( _config_lock )
 def save ():
     """Save the configuration data back into \"config.json\"
 
     This method is thread safe
     """
 
-    _config_lock.acquire ()
     # Save changes into file
     with open ( "config.json", "w" ) as f:
         f.write ( _config_handle._data_string )
-    _config_lock.release ()
