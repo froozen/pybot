@@ -1,8 +1,9 @@
 import os
-import log
-import socket
 import re
+import log
+import time
 import users
+import socket
 import threading
 import plugin_manager
 from configuration import Configuration_data_container
@@ -64,16 +65,25 @@ class Irc_server ( threading.Thread ):
     def _connect ( self ):
         """Connect to server via socket."""
 
-        self._socket = socket.socket ()
+        sleep_time = 15
 
-        try:
-            # Connect to server
-            self._socket.connect ( ( self.host, self.port ) )
-            log.write ( "%s: Connection established" % self.host )
+        while True:
+            self._socket = socket.socket ()
+            # Set timeout for disconnecte detection
+            self._socket.settimeout ( 250 )
 
-        except socket.error:
-            log.write ( "Error in irc: Failed to connect to server: %s:%d" % ( self.host, self.port ) )
-            raise
+            try:
+                # Connect to server
+                self._socket.connect ( ( self.host, self.port ) )
+                log.write ( "%s: Connection established" % self.host )
+                break
+
+            except socket.error:
+                log.write ( "%s: Error in irc: Connecting failed." % self.host )
+
+            log.write ( "%s: Retrying in %ds." % ( self.host, sleep_time ) )
+            time.sleep ( sleep_time )
+            sleep_time = sleep_time * 2 if sleep_time * 2 < 300 else 300
 
         self._register ()
 
@@ -122,7 +132,11 @@ class Irc_server ( threading.Thread ):
     def _next_event ( self ):
         """Return the Irc_event corresponding to the next line."""
 
-        line = self._read_line ()
+        try:
+            line = self._read_line ()
+        except socket.timeout:
+            line = "DISCONNECT %s" % time.ctime ()
+
         event = Irc_event ( line )
 
         # Try to call event handling function
@@ -134,6 +148,12 @@ class Irc_server ( threading.Thread ):
                 pass
 
         return event
+
+    def _on_disconnect ( self, event ):
+        """Automaticly reconnect upon disconnect."""
+
+        log.write ( "%s: Connection lost." % self.host )
+        self._connect ()
 
     def send_event ( self, event ):
         """Send event over socket."""
