@@ -3,10 +3,12 @@ import log
 import socket
 import re
 import users
+import threading
+import plugin_manager
 from configuration import Configuration_data_container
 from data_container import Data_container, Persistent_data_container
 
-class Irc_server ( object ):
+class Irc_server ( threading.Thread ):
     def __init__ ( self, data_container ):
         """Create an Irc_server from a Data_container.
 
@@ -16,6 +18,10 @@ class Irc_server ( object ):
             nick: nickname the bot will use
             channels: channels to join upon connect ( optional )
         """
+
+        # Do all the Thread related things
+        threading.Thread.__init__ ( self )
+        self.daemon = True
 
         # Used in _read_line
         self._last_lines = []
@@ -31,7 +37,7 @@ class Irc_server ( object ):
         self.port = 6667
         self.host = data_container.get ( "host" )
         self.nick = data_container.get ( "nick" )
-        channels = []
+        self._channels = []
 
         # Make sure server_data exists
         if not os.path.isdir ( os.path.dirname ( __file__ ) + "/../server_data" ):
@@ -46,7 +52,17 @@ class Irc_server ( object ):
             self.port = data_container.get ( "port" )
 
         if data_container.get ( "channels" ):
-            channels = data_container.get ( "channels" )
+            self._channels = data_container.get ( "channels" )
+
+    def run ( self ):
+        while True:
+            self._connect ()
+            while True:
+                event = self._next_event ()
+                plugin_manager.handle_event ( event, self )
+
+    def _connect ( self ):
+        """Connect to server via socket."""
 
         self._socket = socket.socket ()
 
@@ -59,9 +75,9 @@ class Irc_server ( object ):
             log.write ( "Error in irc: Failed to connect to server: %s:%d" % ( self.host, self.port ) )
             raise
 
-        self._register ( channels )
+        self._register ()
 
-    def _register ( self, channels ):
+    def _register ( self ):
         """Register using NICK and USER, then wait for MODE signal and JOIN the channels"""
 
         nick_event = Irc_event ( "NICK", self.nick )
@@ -70,13 +86,13 @@ class Irc_server ( object ):
         self.send_event ( user_event )
 
         while True:
-            event = self.get_next_event ()
+            event = self._next_event ()
 
             if event.type == "MODE" and event.args [ 0 ] == self.nick:
                 log.write ( "%s: Connected as %s" % ( self.host, self.nick ) )
                 # Automaticly join channels
-                if len ( channels ) > 0:
-                    join_event = Irc_event ( "JOIN", ",".join ( channels ) )
+                if len ( self._channels ) > 0:
+                    join_event = Irc_event ( "JOIN", ",".join ( self._channels ) )
                     self.send_event ( join_event )
                 break
 
@@ -103,7 +119,7 @@ class Irc_server ( object ):
             if len ( lines ) > 0:
                 self._last_lines.extend ( lines )
 
-    def get_next_event ( self ):
+    def _next_event ( self ):
         """Return the Irc_event corresponding to the next line."""
 
         line = self._read_line ()
