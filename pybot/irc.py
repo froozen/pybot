@@ -60,7 +60,7 @@ class Irc_server ( object ):
         while True:
             event = self.get_next_event ()
 
-            if event.type == "MODE" and event.args == [ self.nick, "+i" ]:
+            if event.type == "MODE" and event.args [ 0 ] == self.nick:
                 # Automaticly join channels
                 if len ( channels ) > 0:
                     join_event = Irc_event ( "JOIN", ",".join ( channels ) )
