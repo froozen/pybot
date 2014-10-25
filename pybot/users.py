@@ -48,6 +48,7 @@ class User_data ( object ):
         with self._lock:
             # Bot joined a channel
             if event.name == self._server.nick:
+                log.write ( "%s: Joined %s" % ( self._server.host, event.args [ 0 ] ) )
                 # Add new channel
                 self._channels [ event.args [ 0 ] ] = Channel ( event.args [ 0 ] )
 

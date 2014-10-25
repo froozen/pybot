@@ -42,6 +42,7 @@ class Irc_server ( object ):
         try:
             # Connect to server
             self._socket.connect ( ( self.host, self.port ) )
+            log.write ( "%s: Connection established" % self.host )
 
         except socket.error:
             log.write ( "Error in irc: Failed to connect to server: %s:%d" % ( self.host, self.port ) )
@@ -61,6 +62,7 @@ class Irc_server ( object ):
             event = self.get_next_event ()
 
             if event.type == "MODE" and event.args [ 0 ] == self.nick:
+                log.write ( "%s: Connected as %s" % ( self.host, self.nick ) )
                 # Automaticly join channels
                 if len ( channels ) > 0:
                     join_event = Irc_event ( "JOIN", ",".join ( channels ) )
