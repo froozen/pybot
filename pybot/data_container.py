@@ -140,7 +140,7 @@ class Persistent_data_container ( object ):
         with self._lock:
             try:
                 # Write data into file
-                with open ( filename, w ) as f:
+                with open ( self.filename, "w" ) as f:
                     f.write ( json.dumps ( self._container.get_data (), indent = 4, separators = [ ",", ": " ] ) )
 
             except IOError:
