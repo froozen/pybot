@@ -2,8 +2,9 @@ import os
 import log
 import socket
 import re
-from data_container import Data_container, Persistent_data_container
 import users
+from configuration import Configuration_data_container
+from data_container import Data_container, Persistent_data_container
 
 class Irc_server ( object ):
     def __init__ ( self, data_container ):
@@ -37,7 +38,7 @@ class Irc_server ( object ):
             os.makedirs ( os.path.dirname ( __file__ ) + "/../server_data" )
 
         # Load server config
-        self.cofiguration = Persistent_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.config.json" % self.host )
+        self.cofiguration = Configuration_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.config.json" % self.host )
         self.persistent_data = Persistent_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.data.json" % self.host )
 
         # Use port from configuration if it exists
