@@ -1,7 +1,7 @@
 import log
 import json
 import os
-from data_container import Data_container
+from data_container import Persistent_data_container
 
 _config_container = None
 
@@ -9,20 +9,7 @@ def initialize ():
     """Load configuration from \"config.json\"."""
 
     global _config_container
-
-    try:
-        # This loads the right file regardless from where the bot was started
-        with open ( os.path.dirname ( __file__ ) + "/../config.json" ) as f:
-            data = json.loads ( f.read () )
-            _config_container = Data_container ( data )
-
-    except IOError:
-        log.write ( "Error in configuration: Failed to load \"config.json\"" )
-        raise
-
-    except ValueError:
-        log.write ( "Error in configuration: Invalid configuration" )
-        raise
+    _config_container = Persistent_data_container ( os.path.dirname ( __file__ ) + "/../config.json" )
 
 def get ( key ):
     """Return a configuration value or None if not set
@@ -47,7 +34,6 @@ def set ( key, value ):
 
     # Simply call the method in _config_container
     _config_container.set ( key, value )
-    save ()
 
 def get_data_container ( key ):
     """Return a Data_container object representing a dict identified by a key.
@@ -59,14 +45,3 @@ def get_data_container ( key ):
     """
 
     return _config_container.get_data_container ( key )
-
-def save ():
-    """Save the configuration data back into \"config.json\"
-
-    This method is thread safe
-    """
-
-    # Save changes into file
-    # This loads the right file regardless from where the bot was started
-    with open ( os.path.dirname ( __file__ ) + "/../config.json", "w" ) as f:
-        f.write ( json.dumps ( _config_container.get_data (), indent = 4, separators = [ ",", ": " ] ) )
