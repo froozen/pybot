@@ -20,6 +20,7 @@ class Irc_server ( threading.Thread ):
             channels: channels to join upon connect ( optional )
         """
 
+
         # Do all the Thread related things
         threading.Thread.__init__ ( self )
         self.daemon = True
@@ -37,8 +38,9 @@ class Irc_server ( threading.Thread ):
         # Assume this as a default value
         self.port = 6667
         self.host = data_container.get ( "host" )
-        self.nick = data_container.get ( "nick" )
+        self.prefered_nick = data_container.get ( "nick" )
         self._channels = []
+        self.nick = None
 
         # Make sure server_data exists
         if not os.path.isdir ( os.path.dirname ( __file__ ) + "/../server_data" ):
@@ -90,6 +92,8 @@ class Irc_server ( threading.Thread ):
     def _register ( self ):
         """Register using NICK and USER, then wait for MODE signal and JOIN the channels"""
 
+        self.nick = self.prefered_nick
+
         nick_event = Irc_event ( "NICK", self.nick )
         self.send_event ( nick_event )
         user_event = Irc_event ( "USER", self.nick, "localhost", "localhost", "irc bot" )
@@ -105,6 +109,13 @@ class Irc_server ( threading.Thread ):
                     join_event = Irc_event ( "JOIN", ",".join ( self._channels ) )
                     self.send_event ( join_event )
                 break
+
+            # Nick already in use
+            elif event.type == "433":
+                log.write ( "%s: %s already taken, switching to %s_." % ( self.host, self.nick, self.nick ) )
+                self.nick = "%s_" % self.nick
+                nick_event = Irc_event ( "NICK", self.nick )
+                self.send_event ( nick_event )
 
     def _read_line ( self ):
         """Read one irc-line from self._socket"""
@@ -169,6 +180,25 @@ class Irc_server ( threading.Thread ):
 
         pong_event = Irc_event ( "PONG", event.args [ 0 ] )
         self.send_event ( pong_event )
+
+    def _on_join ( self, event ):
+        """Keep track of joined channels to join upon reconnect."""
+
+        if event.name == self.nick:
+            if event.args [ 0 ] in self._channels:
+                self._channels.append ( event.args [ 0 ] )
+
+    def _on_part ( self, event ):
+        """Keep track of joined channels to join upon reconnect."""
+
+        if event.name == self.nick:
+            self._channels.remove ( event.args [ 0 ] )
+
+    def _on_nick ( self, event ):
+        """Keep track of own nick."""
+
+        if event.name == self.nick:
+            self.nick = event.args [ 0 ]
 
 class Irc_event ( object ):
     def __init__ ( self, line_o_type = None, *args ):
