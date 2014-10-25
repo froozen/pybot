@@ -1,4 +1,5 @@
 import threading
+import copy
 import log
 import irc
 
@@ -164,3 +165,29 @@ class User_data ( object ):
                 # User loses op
                 elif event.args [ 1 ].startswith ( "-" ) and "o" in event.args [ 1 ]:
                     channel.ops.remove ( user )
+
+    def get_user ( self, nick ):
+        """Return User object corresponding to nick or None.
+
+        This method is thread safe.
+        """
+
+        with self._lock:
+            if nick in self._users:
+                # Return a deepycopy to be thread safe
+                return copy.deepcopy ( self._users [ nick ] )
+            else:
+                return None
+
+    def get_channel ( self, channel ):
+        """Return Channel object corresponding to name on None.
+
+        This method is thread safe.
+        """
+
+        with self._lock:
+            if channel in self._channels:
+                # Return a deepycopy to be thread safe
+                return copy.deepcopy ( self._channels [ channel ] )
+            else:
+                return None
