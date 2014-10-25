@@ -132,6 +132,7 @@ class Irc_event ( object ):
 
         # Set default values
         self.name = None
+        self.user = None
         self.host = None
         self.type = None
         self.args = []
@@ -142,10 +143,11 @@ class Irc_event ( object ):
             # Starts with origin
             if parts [ 0 ].startswith ( ":" ):
                 # Try to extract the names via regex
-                match = re.match ( ":(.*?)!(.*)", parts [ 0 ] )
+                match = re.match ( ":(.*?)!(?:(.*?)@(.*))", parts [ 0 ] )
                 if match:
                     self.name = match.group ( 1 )
-                    self.host = match.group ( 2 )
+                    self.user = match.group ( 2 )
+                    self.host = match.group ( 3 )
 
                 # Save the whole as name
                 else:
