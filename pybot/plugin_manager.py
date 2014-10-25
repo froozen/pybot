@@ -24,7 +24,7 @@ def load_plugins ():
 
     for importer, module_name, is_pkg in pkgutil.iter_modules ( plugins.__path__, "%s." % plugins.__name__ ):
         module = __import__ ( module_name, fromlist = "dummy" )
-        print "Imported %s" % module.__name__
+        log.write ( "Imported %s" % module.__name__ )
 
     _allow_register = False
 
