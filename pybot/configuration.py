@@ -44,12 +44,6 @@ class Configuration_data_container ( object ):
         # Simply return value from self._container
         return self._container.get_data_container ( key )
 
-def initialize ():
-    """Load configuration from \"config.json\"."""
-
-    global _config_container
-    _config_container = Configuration_data_container ( os.path.dirname ( __file__ ) + "/../config.json" )
-
 def get ( key ):
     """Return a configuration value or None if not set
 
@@ -84,3 +78,7 @@ def get_data_container ( key ):
     """
 
     return _config_container.get_data_container ( key )
+
+# Initialize configuration
+if _config_container == None:
+    _config_container = Configuration_data_container ( os.path.dirname ( __file__ ) + "/../config.json" )
