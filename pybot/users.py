@@ -95,8 +95,14 @@ class User_data ( object ):
     def _on_quit ( self, event ):
         """Handle QUIT events."""
 
-        # Those two methods do exactly the same thing
-        self._on_part ( event )
+        user = self._users [ event.name ]
+
+        for channel in user.channel:
+            self._channels [ channel ].users.remove ( user )
+            if user in self._channels [ channel ].ops:
+                self._channels [ channel ].ops.remove ( user )
+
+        self._users.remove ( user )
 
     def _on_nick ( self, event ):
         """Handle NICK events."""
@@ -155,16 +161,17 @@ class User_data ( object ):
         with self._lock:
             # Only handle modes on channels
             if event.args [ 0 ] in self._channels:
-                channel = self._channels [ event.args [ 0 ] ]
-                user = self._users [ event.name ]
+                if event.name in self._users:
+                    channel = self._channels [ event.args [ 0 ] ]
+                    user = self._users [ event.name ]
 
-                # User receives op
-                if event.args [ 1 ].startswith ( "+" ) and "o" in event.args [ 1 ]:
-                    channel.ops.append ( user )
+                    # User receives op
+                    if event.args [ 1 ].startswith ( "+" ) and "o" in event.args [ 1 ]:
+                        channel.ops.append ( user )
 
-                # User loses op
-                elif event.args [ 1 ].startswith ( "-" ) and "o" in event.args [ 1 ]:
-                    channel.ops.remove ( user )
+                    # User loses op
+                    elif event.args [ 1 ].startswith ( "-" ) and "o" in event.args [ 1 ]:
+                        channel.ops.remove ( user )
 
     def _on_dicsconnect ( self, event ):
         """Handle disconnect by wiping out everything."""
