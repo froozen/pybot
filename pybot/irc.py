@@ -1,7 +1,8 @@
+import os
 import log
 import socket
 import re
-from data_container import Data_container
+from data_container import Data_container, Persistent_data_container
 import users
 
 class Irc_server ( object ):
@@ -19,6 +20,7 @@ class Irc_server ( object ):
         self._last_lines = []
 
         self.user_data = users.User_data ( self )
+        self.shared_data = Data_container ( {} )
 
         if not type ( data_container ) == Data_container:
             log.write ( "Error in irc: data_container is not a Data_container" )
@@ -29,6 +31,14 @@ class Irc_server ( object ):
         self.host = data_container.get ( "host" )
         self.nick = data_container.get ( "nick" )
         channels = []
+
+        # Make sure server_data exists
+        if not os.path.isdir ( os.path.dirname ( __file__ ) + "/../server_data" ):
+            os.makedirs ( os.path.dirname ( __file__ ) + "/../server_data" )
+
+        # Load server config
+        self.cofiguration = Persistent_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.config.json" % self.host )
+        self.persistent_data = Persistent_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.data.json" % self.host )
 
         # Use port from configuration if it exists
         if data_container.get ( "port" ):
