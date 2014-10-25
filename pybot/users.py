@@ -143,7 +143,9 @@ class User_data ( object ):
         """Handle 311 events. ( WHOIS host response )"""
 
         with self._lock:
-            self._users [ event.args [ 1 ] ].host = "%s@%s" % ( event.args [ 2 ], event.args [ 3 ] )
+            # Some plugin might use the WHOIS command on unknown users
+            if event.args [ 1 ] in self._users:
+                self._users [ event.args [ 1 ] ].host = "%s@%s" % ( event.args [ 2 ], event.args [ 3 ] )
 
     def _on_mode ( self, event ):
         """Handle MODE events."""
