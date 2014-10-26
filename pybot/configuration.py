@@ -56,18 +56,6 @@ def get ( key ):
     # Simply call the method in _config_container
     return _config_container.get ( key )
 
-def set ( key, value ):
-    """Set a configuration value.
-
-    Keys:
-        \"user.email\" means root [ "user" ] [ "email" ]
-
-    This method is thread safe.
-    """
-
-    # Simply call the method in _config_container
-    _config_container.set ( key, value )
-
 def get_data_container ( key ):
     """Return a Data_container object representing a dict identified by a key.
 
