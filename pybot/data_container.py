@@ -45,6 +45,99 @@ class Data_container ( object ):
             # Always use deepcopy to make it thread safe
             return copy.deepcopy ( position )
 
+    def append ( self, key, value ):
+        """Append a value to a list responding to a key.
+
+        Keys:
+            \"user.email\" means root [ "user" ] [ "email" ]
+
+        This method is thread safe.
+        """
+
+        with self._lock:
+            key_levels = key.split ( "." )
+            position = self._data
+
+            for key_level in key_levels:
+                # Check the current type, so the type of the last iteration's position isn't
+                # checked. This will allow getting non-dict values.
+                if type ( position ) == dict:
+                    if key_level in position:
+                        # Set position to next dict in "tree"
+                        position = position [ key_level ]
+                        continue
+
+                log.write ( "Error in data_container: Invalid key: %s" % key )
+                raise ValueError ( "Error: Invalid key: %s" % key )
+
+            if not type ( position ) == list:
+                log.write ( "Error in data_container: Cannot append to %s ( %s ), has to be a list" % type ( position ), key )
+                raise ValueError ( "Error: Cannot append to %s ( %s ), has to be a list" % type ( position ), key )
+
+            position.append ( value )
+
+    def pop ( self, key, index ):
+        """Pop the value at an index off a list responding to a key.
+
+        Keys:
+            \"user.email\" means root [ "user" ] [ "email" ]
+
+        This method is thread safe.
+        """
+
+        with self._lock:
+            key_levels = key.split ( "." )
+            position = self._data
+
+            for key_level in key_levels:
+                # Check the current type, so the type of the last iteration's position isn't
+                # checked. This will allow getting non-dict values.
+                if type ( position ) == dict:
+                    if key_level in position:
+                        # Set position to next dict in "tree"
+                        position = position [ key_level ]
+                        continue
+
+                log.write ( "Error in data_container: Invalid key: %s" % key )
+                raise ValueError ( "Error: Invalid key: %s" % key )
+
+            if not type ( position ) == list:
+                log.write ( "Error in data_container: Cannot pop from %s ( %s ), has to be a list" % type ( position ), key )
+                raise ValueError ( "Error: Cannot pop from %s ( %s ), has to be a list" % type ( position ), key )
+
+            position.pop ( index )
+
+    def remove ( self, key, value ):
+        """Remove a value from a list responding to a key.
+
+        Keys:
+            \"user.email\" means root [ "user" ] [ "email" ]
+
+        This method is thread safe.
+        """
+
+        with self._lock:
+            key_levels = key.split ( "." )
+            position = self._data
+
+            for key_level in key_levels:
+                # Check the current type, so the type of the last iteration's position isn't
+                # checked. This will allow getting non-dict values.
+                if type ( position ) == dict:
+                    if key_level in position:
+                        # Set position to next dict in "tree"
+                        position = position [ key_level ]
+                        continue
+
+                log.write ( "Error in data_container: Invalid key: %s" % key )
+                raise ValueError ( "Error: Invalid key: %s" % key )
+
+            if not type ( position ) == list:
+                log.write ( "Error in data_container: Cannot remove from %s ( %s ), has to be a list" % type ( position ), key )
+                raise ValueError ( "Error: Cannot remove from %s ( %s ), has to be a list" % type ( position ), key )
+
+            position.remove ( value )
+
     def set ( self, key, value ):
         """Set a value.
 
@@ -72,8 +165,8 @@ class Data_container ( object ):
                         position = position [ key_level ]
 
                 else:
-                    log.write ( "Error in data_container: Key_level \"%s\" in path is not a dict" % key_level )
-                    raise ValueError ( "Error: Key_level \"%s\" in path is not a dict" % key_level )
+                    log.write ( "Error in data_container: Invalid key: %s" % key )
+                    raise ValueError ( "Error: Invalid key: %s" % key )
 
             # Actually set the value
             position [ key_levels [ -1 ] ] = value
@@ -136,6 +229,46 @@ class Persistent_data_container ( object ):
         """
 
         self._container.set ( key, value )
+        self._save ()
+
+    def append ( self, key, value ):
+        """Append a value to a list responding to a key.
+
+        Keys:
+            \"user.email\" means root [ "user" ] [ "email" ]
+
+        This method is thread safe.
+        """
+
+        self._container.append ( key, value )
+        self._save ()
+
+    def pop ( self, key, index ):
+        """Pop the value at an index off a list responding to a key.
+
+        Keys:
+            \"user.email\" means root [ "user" ] [ "email" ]
+
+        This method is thread safe.
+        """
+
+        self._container.pop ( key, index )
+        self._save ()
+
+    def remove ( self, key, value ):
+        """Remove a value from a list responding to a key.
+
+        Keys:
+            \"user.email\" means root [ "user" ] [ "email" ]
+
+        This method is thread safe.
+        """
+
+        self._container.remove ( key, value )
+        self._save ()
+
+    def _save ( self ):
+        """Save the data to the container."""
 
         with self._lock:
             try:
