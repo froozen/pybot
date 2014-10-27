@@ -15,6 +15,7 @@ class Irc_server ( threading.Thread ):
         """Create an Irc_server from a Data_container.
 
         Used keys:
+            name: name used for files
             host: address of the server
             port: port of the server ( optional )
             nick: nickname the bot will use
@@ -40,6 +41,7 @@ class Irc_server ( threading.Thread ):
         self.port = 6667
         self.host = data_container.get ( "host" )
         self.prefered_nick = data_container.get ( "nick" )
+        self.name = data_container.get ( "name" )
         self._channels = []
         self.nick = None
 
@@ -48,8 +50,8 @@ class Irc_server ( threading.Thread ):
             os.makedirs ( os.path.dirname ( __file__ ) + "/../server_data" )
 
         # Load server config
-        self.cofiguration = Configuration_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.config.json" % self.host )
-        self.persistent_data = Persistent_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.data.json" % self.host )
+        self.cofiguration = Configuration_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.config.json" % self.name )
+        self.persistent_data = Persistent_data_container ( os.path.dirname ( __file__ ) + "/../server_data/%s.data.json" % self.name )
 
         # Use port from configuration if it exists
         if data_container.get ( "port" ):
