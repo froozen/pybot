@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 
 from pybot import configuration, irc, log, plugin_manager
 from pybot.data_container import Data_container
