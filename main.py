@@ -1,17 +1,17 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 
-import connection
-import plugin_handler
-import logging
+from pybot import configuration, irc, log, plugin_manager
+from pybot.data_container import Data_container
+import time
 
-logging.init()
-connection.init()
-plugin_handler.init()
+plugin_manager.load_plugins ()
+
+servers = configuration.get ( "servers" )
+for server_config in servers:
+    handle = Data_container ( server_config )
+    server = irc.Irc_server ( handle )
+    server.start ()
 
 while True:
-    readlines = connection.read_lines()
-    
-    for readline in readlines:
-        plugin_handler.handle_input(readline)
-
-connection.disconnect()
+    # Keep thread alive
+    time.sleep ( 1 )
