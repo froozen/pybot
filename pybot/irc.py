@@ -7,7 +7,8 @@ import socket
 import threading
 import plugin_manager
 from configuration import Configuration_data_container
-from data_container import Data_container, Persistent_data_container
+from data_container import Data_container
+from persistent_data import Persistent_data_container
 
 class Irc_server ( threading.Thread ):
     def __init__ ( self, data_container ):
