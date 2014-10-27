@@ -174,7 +174,11 @@ class Irc_server ( threading.Thread ):
             log.write ( "Error in irc: event is not an Irc_event" )
             raise ValueError ( "Error: event is not an Irc_event" )
 
-        self._socket.send ( "%s\r\n" % event.signal )
+        try:
+            self._socket.send ( "%s\r\n" % event.signal )
+
+        except socket.error:
+            pass
 
     def _on_ping ( self, event ):
         """Automaticly handle pings."""
@@ -265,4 +269,5 @@ class Irc_event ( object ):
 
             else:
                 signal += " " + arg
+
         return signal
