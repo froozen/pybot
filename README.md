@@ -43,3 +43,5 @@ Now you can simply run:<br>
 
 Adding plugins is rather simple. To do that, you simply copy the plugin into the plugins folder and restart the bot.<br>
 Some nice plugins that you might want can be found in [pybot-plugins](https://github.com/froozen/pybot-plugins).
+
+If you are interested in writing your own plugins, make sure to take a look at the [wiki](https://github.com/froozen/pybot/wiki).
