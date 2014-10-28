@@ -61,6 +61,10 @@ class User_data ( object ):
                     user = User ( event.name )
                     self._users [ event.name ] = user
 
+                    # Send WHOIS event to get host
+                    whois_event = irc.Irc_event ( "WHOIS", user.nick )
+                    self._server.send_event ( whois_event )
+
                 else:
                     user = self._users [ event.name ]
 
@@ -136,6 +140,11 @@ class User_data ( object ):
                 # User is not known yet
                 if not user.nick in self._users:
                     self._users [ user.nick ] = user
+
+                    # Send WHOIS event to get host
+                    whois_event = irc.Irc_event ( "WHOIS", user.nick )
+                    self._server.send_event ( whois_event )
+
                 else:
                     user = self._users [ user.nick ]
 
