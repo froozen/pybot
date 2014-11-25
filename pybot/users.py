@@ -99,14 +99,15 @@ class User_data ( object ):
     def _on_quit ( self, event ):
         """Handle QUIT events."""
 
-        user = self._users [ event.name ]
+        with self._lock:
+            user = self._users [ event.name ]
 
-        for channel in user.channel:
-            self._channels [ channel ].users.remove ( user )
-            if user in self._channels [ channel ].ops:
-                self._channels [ channel ].ops.remove ( user )
+            for channel in user.channels:
+                self._channels [ channel ].users.remove ( user )
+                if user in self._channels [ channel ].ops:
+                    self._channels [ channel ].ops.remove ( user )
 
-        self._users.remove ( user )
+            del self._users [ event.name ]
 
     def _on_nick ( self, event ):
         """Handle NICK events."""
