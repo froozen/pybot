@@ -5,18 +5,11 @@ import irc
 
 class User ( object ):
     def __init__ ( self, nick ):
-        """Create User from a nickname.
-
-        The leading \"@\" for ops is removed.
-        """
+        """Create User from a nickname."""
 
         self.nick = nick
         self.channels = []
         self.host = None
-
-        # Remove op symbol
-        if self.nick.startswith ( "@" ):
-            self.nick = self.nick [ 1: ]
 
 class Channel ( object ):
     def __init__ ( self, name ):
@@ -43,71 +36,60 @@ class User_data ( object ):
         self._users = {}
         self._channels = {}
 
+    def get_user ( self, nick ):
+        """Return User object corresponding to nick or None.
+
+        This method is thread safe.
+        """
+
+        with self._lock:
+            if nick in self._users:
+                # Return a deepycopy to be thread safe
+                return copy.deepcopy ( self._users [ nick ] )
+            else:
+                return None
+
+    def get_channel ( self, channel ):
+        """Return Channel object corresponding to name on None.
+
+        This method is thread safe.
+        """
+
+        with self._lock:
+            if channel in self._channels:
+                # Return a deepycopy to be thread safe
+                return copy.deepcopy ( self._channels [ channel ] )
+            else:
+                return None
+
     def _on_join ( self, event ):
         """Handle JOIN events."""
 
         with self._lock:
+            channel_name = event.args [ 0 ]
+
             # Bot joined a channel
             if event.name == self._server.nick:
-                log.write ( "%s: Joined %s" % ( self._server.host, event.args [ 0 ] ) )
-                # Add new channel
-                self._channels [ event.args [ 0 ] ] = Channel ( event.args [ 0 ] )
+                log.write ( "%s: Joined %s" % ( self._server.host, channel_name ) )
 
             else:
-                user = None
-
-                # Create user if it doesn't exist
-                if not event.name in self._users:
-                    user = User ( event.name )
-                    self._users [ event.name ] = user
-
-                    # Send WHOIS event to get host
-                    whois_event = irc.Irc_event ( "WHOIS", user.nick )
-                    self._server.send_event ( whois_event )
-
-                else:
-                    user = self._users [ event.name ]
-
-                user.channels.append ( event.args [ 0 ] )
-
-                # Add user to channel
-                self._channels [ event.args [ 0 ] ].users.append ( user )
+                self._add_user_to_channel ( event.name, channel_name )
 
     def _on_part ( self, event ):
         """Handle PART events."""
 
         with self._lock:
-            user = self._users [ event.name ]
-            channel = self._channels [ event.args [ 0 ] ]
-
-            # User left his only known channel
-            if len ( user.channels ) == 1:
-                # Remove user
-                del self._users [ event.name ]
-
-            else:
-                # Remove channel from users channels
-                user.channels.remove ( event.args [ 0 ] )
-
-            # Remove user from channel
-            channel.users.remove ( user )
-
-            # Remove user from ops
-            if user in channel.ops:
-                channel.ops.remove ( user )
+            self._remove_user_from_channel ( event.name, event.args [ 0 ] )
 
     def _on_quit ( self, event ):
         """Handle QUIT events."""
 
         with self._lock:
-            user = self._users [ event.name ]
+            user =  self._users [ event.name ]
 
-            for channel in user.channels:
-                self._channels [ channel ].users.remove ( user )
-                if user in self._channels [ channel ].ops:
-                    self._channels [ channel ].ops.remove ( user )
-
-            del self._users [ event.name ]
+            # Removing the user from every channel they are on will delete them
+            for channel_name in user.channels:
+                self._remove_user_from_channel ( event.name, channel_name )
 
     def _on_nick ( self, event ):
         """Handle NICK events."""
@@ -118,43 +100,26 @@ class User_data ( object ):
             # of strings
 
             user = self._users [ event.name ]
+            new_nick = event.args [ 0 ]
 
             # Change the users nick
-            user.nick = event.args [ 0 ]
+            user.nick = new_nick
 
             # Move user over
             del self._users [ event.name ]
-            self._users [ event.args [ 0 ] ] = user
+            self._users [ new_nick ] = user
 
     # NAMES signal, send when joining a new channel
     def _on_353 ( self, event ):
         """Handle 353 events. ( NAMES response )"""
 
         with self._lock:
-            channel = self._channels [ event.args [ 2 ] ]
+            channel_name = event.args [ 2 ]
             nicks = event.args [ 3 ].split ( " " )
 
             for nick in nicks:
-                # Take advantage of User removing the "@" at the begining
-                user = User ( nick )
-
-                # User is not known yet
-                if not user.nick in self._users:
-                    self._users [ user.nick ] = user
-
-                    # Send WHOIS event to get host
-                    whois_event = irc.Irc_event ( "WHOIS", user.nick )
-                    self._server.send_event ( whois_event )
-
-                else:
-                    user = self._users [ user.nick ]
-
-                user.channels.append ( channel.name )
-                channel.users.append ( user )
-
-                # User is op
-                if nick.startswith ( "@" ):
-                    channel.ops.append ( user )
+                # Add every nick to the channel
+                self._add_user_to_channel ( nick, channel_name )
 
     # WHOIS host response
     def _on_311 ( self, event ):
@@ -187,31 +152,75 @@ class User_data ( object ):
         """Handle disconnect by wiping out everything."""
 
         with self._lock:
+            # Reset all known data
             self._channels = {}
             self._users = {}
 
-    def get_user ( self, nick ):
-        """Return User object corresponding to nick or None.
+    def _add_user_to_channel ( self, nick, channel_name ):
+        """Add a user to a channel.
 
-        This method is thread safe.
+        Create everything that doesn't exist yet.
         """
 
-        with self._lock:
-            if nick in self._users:
-                # Return a deepycopy to be thread safe
-                return copy.deepcopy ( self._users [ nick ] )
-            else:
-                return None
+        # Check for op and fix nick, if neccessary
+        is_op = False
+        if nick.startswith ( "@" ):
+            is_op = True
+            nick = nick [ 1: ]
 
-    def get_channel ( self, channel ):
-        """Return Channel object corresponding to name on None.
+        # Add channel if it doesn't exist
+        if not channel_name in self._channels:
+            self._add_channel ( channel_name )
 
-        This method is thread safe.
+        # Add user if they don't exist
+        if not nick in self._users:
+            self._add_user ( nick )
+
+        # Add channel to user
+        user = self._users [ nick ]
+        user.channels.append ( channel_name )
+
+        # Add user to channel
+        channel = self._channels [ channel_name ]
+        channel.users.append ( user )
+
+        # Add them to ops as well if they are one
+        if is_op:
+            channel.ops.append ( user )
+
+    def _add_channel ( self, channel_name ):
+        """Add a new channel."""
+
+        # Create the new channel
+        self._channels [ channel_name ] = Channel ( channel_name )
+
+    def _add_user ( self, nick ):
+        """Add a new user."""
+
+        # Create the new user
+        self._users [ nick ] = User ( nick )
+
+        # Send WHOIS event to get their host
+        whois_event = irc.Irc_event ( "WHOIS", nick )
+        self._server.send_event ( whois_event )
+
+    def _remove_user_from_channel ( self, nick, channel_name ):
+        """Remove user from a channel.
+
+        Delete anything that isn't needed anymore.
         """
 
-        with self._lock:
-            if channel in self._channels:
-                # Return a deepycopy to be thread safe
-                return copy.deepcopy ( self._channels [ channel ] )
-            else:
-                return None
+        user = self._users [ nick ]
+        channel = self._channels [ channel_name ]
+
+        # Remove references to each other
+        channel.users.remove ( user )
+        user.channels.remove ( channel_name )
+
+        # Remove user from ops, if they are op
+        if user in channel.ops:
+            channel.ops.remove ( user )
+
+        # User is "unknown"
+        if len ( user.channels ) == 0:
+            del self._users [ nick ]
