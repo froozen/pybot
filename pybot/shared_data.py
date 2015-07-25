@@ -1,8 +1,9 @@
 from data_container import Data_container
 
-_container = Data_container ( {} )
+_container = Data_container({})
 
-def get ( key ):
+
+def get(key):
     """Return a value or None if not set
 
     Keys:
@@ -12,9 +13,10 @@ def get ( key ):
     """
 
     # Simply call the method in _container
-    return _container.get ( key )
+    return _container.get(key)
 
-def set ( key, value ):
+
+def set(key, value):
     """Set a value.
 
     Keys:
@@ -24,9 +26,10 @@ def set ( key, value ):
     """
 
     # Simply call the method in _container
-    _container.set ( key, value )
+    _container.set(key, value)
 
-def get_data_container ( key ):
+
+def get_data_container(key):
     """Return a Data_container object representing a dict identified by a key.
 
     Keys:
@@ -36,9 +39,10 @@ def get_data_container ( key ):
     """
 
     # Simply call the method in _container
-    return _container.get_data_container ( key )
+    return _container.get_data_container(key)
 
-def append ( self, key, value ):
+
+def append(self, key, value):
     """Append a value to a list responding to a key.
 
     Keys:
@@ -48,9 +52,10 @@ def append ( self, key, value ):
     """
 
     # Simply call the method in _container
-    _container.append ( key, value )
+    _container.append(key, value)
 
-def pop ( self, key, index ):
+
+def pop(self, key, index):
     """Pop the value at an index off a list responding to a key.
 
     Keys:
@@ -60,9 +65,10 @@ def pop ( self, key, index ):
     """
 
     # Simply call the method in _container
-    _container.pop ( key, index )
+    _container.pop(key, index)
 
-def remove ( self, key, value ):
+
+def remove(self, key, value):
     """Remove a value from a list responding to a key.
 
     Keys:
@@ -72,5 +78,4 @@ def remove ( self, key, value ):
     """
 
     # Simply call the method in _container
-    _container.remove ( key, value )
-
+    _container.remove(key, value)
