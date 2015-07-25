@@ -177,7 +177,10 @@ class Irc_server ( threading.Thread ):
             raise ValueError ( "Error: event is not an Irc_event" )
 
         try:
-            self._socket.send ( "%s\r\n" % event.signal.encode ( "utf-8" ) )
+            try:
+                self._socket.send ( "%s\r\n" % event.signal.encode ( "utf-8" ) )
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                self._socket.send ( "%s\r\n" % event.signal )
 
         except socket.error:
             pass
