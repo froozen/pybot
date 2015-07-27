@@ -32,33 +32,44 @@ def load_plugins():
     _allow_register = False
 
 
-def register_event_handler(event, handler):
+def event_handler(event):
     """Register handlier method for an event.
 
     This will only work while the plugins are being imported.
     """
 
-    if _allow_register:
-        # Create list if there is none
-        if not event in _event_handling:
-            _event_handling[event] = []
+    # Return the decorator
+    def event_handler_decorator(fun):
+        if _allow_register:
+            # Create list if there is none
+            if event not in _event_handling:
+                _event_handling[event] = []
 
-        _event_handling[event].append(handler)
+            _event_handling[event].append(fun)
+
+        return fun
+
+    return event_handler_decorator
 
 
-def register_command(command, method):
+def command(command):
     """Register method to represent a command.
 
     This will only work while the plugins are being imported.
     """
 
-    if _allow_register:
-        # Command doesn't collide with an already registered one
-        if not command in _commands:
-            _commands[command] = method
+    def command_decorator(fun):
+        if _allow_register:
+            # Command doesn't collide with an already registered one
+            if command not in _commands:
+                _commands[command] = fun
 
-        else:
-            log.write("Error: command \"%s\" is already registered." % command)
+            else:
+                log.write("Error: command \"%s\" is already registered." % command)
+
+        return fun
+
+    return command_decorator
 
 
 def handle_event(event, server):
