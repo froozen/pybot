@@ -181,11 +181,14 @@ class Irc_server (threading.Thread):
             log.write("Error in irc: event is not an Irc_event")
             raise ValueError("Error: event is not an Irc_event")
 
+        raw_socket_send(event.signal)
+
+    def raw_socket_send(self, text):
         try:
             try:
-                self._socket.send("%s\r\n" % event.signal.encode("utf-8"))
+                self._socket.send("%s\r\n" % text.encode("utf-8"))
             except (UnicodeEncodeError, UnicodeDecodeError):
-                self._socket.send("%s\r\n" % event.signal)
+                self._socket.send("%s\r\n" % text)
 
         except socket.error:
             pass
