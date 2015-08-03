@@ -31,6 +31,10 @@ class Irc_server (threading.Thread):
         # Used in _read_line
         self._last_lines = []
 
+        # Used in send_event
+        self._antiflood_time = time.time()
+        self._antiflood_lock = threading.Lock()
+
         self.user_data = users.User_data(self)
         self.shared_data = Data_container({})
 
@@ -181,11 +185,27 @@ class Irc_server (threading.Thread):
             log.write("Error in irc: event is not an Irc_event")
             raise ValueError("Error: event is not an Irc_event")
 
+        # Prevent toggling the server’s flooding protection, as described in
+        # http://tools.ietf.org/html/rfc1459#section-8.10.
+        with self._antiflood_lock:
+            now = time.time()
+            if self._antiflood_time < now:
+                self._antiflood_time = now
+
+            self._antiflood_time += 2
+
+            sleep_time = self._antiflood_time - (now + 10)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+            self.raw_socket_send(event.signal)
+
+    def raw_socket_send(self, text):
         try:
             try:
-                self._socket.send("%s\r\n" % event.signal.encode("utf-8"))
+                self._socket.send("%s\r\n" % text.encode("utf-8"))
             except (UnicodeEncodeError, UnicodeDecodeError):
-                self._socket.send("%s\r\n" % event.signal)
+                self._socket.send("%s\r\n" % text)
 
         except socket.error:
             pass
