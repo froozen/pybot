@@ -185,7 +185,7 @@ class Irc_server (threading.Thread):
             log.write("Error in irc: event is not an Irc_event")
             raise ValueError("Error: event is not an Irc_event")
 
-        # Prevent toggling the server’s flooding protection, as described in
+        # Prevent toggling the server's flooding protection, as described in
         # http://tools.ietf.org/html/rfc1459#section-8.10.
         with self._antiflood_lock:
             now = time.time()
