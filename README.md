@@ -10,7 +10,6 @@ First, make sure you have Python <= 2.7 installed. An example of how to check if
 ```
 $ python2 --version
   Python 2.7.10
-$
 ```
 
 Second, get a copy of pybot by running:<br>
