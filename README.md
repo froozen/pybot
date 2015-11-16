@@ -27,7 +27,7 @@ Now you need to add a server connection like this:<br>
     "servers": [
         {
             "name": "freenode",
-            "password": "password_here"
+            "password": "password_here",
             "nick": "pybot",
             "host": "irc.freenode.net",
             "port": 6667,
