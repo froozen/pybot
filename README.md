@@ -5,7 +5,7 @@ pybot is an IRC-bot focused on extendability through plugins written in python.
 
 #### Setting it up
 
-First, make sure you have Python <= 2.7 installed. An example of how to check if it's installed down below (note that the information you have may not be exactly the same as the info here).<br>
+First, make sure you have `Python <= 2.7` installed. An example of how to check if it's installed down below (note that the information you have may not be exactly the same as the info here).<br>
 
 ```
 $ python2 --version
