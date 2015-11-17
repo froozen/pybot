@@ -18,6 +18,7 @@ class Irc_server (threading.Thread):
 
         Used keys:
             name: name used for files
+            password: password used to identify with NickServ (optional)
             host: address of the server
             port: port of the server ( optional )
             nick: nickname the bot will use
@@ -49,6 +50,7 @@ class Irc_server (threading.Thread):
         self.name = data_container.get("name")
         self._channels = []
         self.nick = None
+        self.password = None
 
         # Make sure server_data exists
         if not os.path.isdir(os.path.dirname(__file__) + "/../server_data"):
@@ -66,6 +68,9 @@ class Irc_server (threading.Thread):
 
         if data_container.get("channels"):
             self._channels = data_container.get("channels")
+        
+        if data_container.get("password"):
+            self.password = data_container.get("password")
 
     def run(self):
         while True:
@@ -109,6 +114,9 @@ class Irc_server (threading.Thread):
         user_event = Irc_event(
             "USER", self.nick, "localhost", "localhost", "irc bot")
         self.send_event(user_event)
+        identify_event = Irc_event("PRIVMSG", "NickServ", "IDENTIFY %s" % self.password)
+        if self.password:
+            self.send_event(identify_event)
 
         while True:
             event = self._next_event()

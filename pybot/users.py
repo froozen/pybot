@@ -154,7 +154,7 @@ class User_data (object):
                     elif event.args[1].startswith("-") and "o" in event.args[1]:
                         channel.ops.remove(user)
 
-    def _on_dicsconnect(self, event):
+    def _on_disconnect(self, event):
         """Handle disconnect by wiping out everything."""
 
         with self._lock:
