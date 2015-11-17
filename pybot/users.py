@@ -174,6 +174,11 @@ class User_data (object):
             is_op = True
             nick = nick[1:]
 
+        # Remove symbols before nicks, as they might cause problems when trying
+        # to look users up in _users
+        if nick[0] in "%+":
+            nick = nick[1:]
+
         # Add channel if it doesn't exist
         if not channel_name in self._channels:
             self._add_channel(channel_name)
